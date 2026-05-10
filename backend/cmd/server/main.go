@@ -30,11 +30,14 @@ func main() {
 	defer redisClient.Close()
 
 	userRepository := repository.NewPostgresUserRepository(db)
+	buyTransactionRepository := repository.NewPostgresBuyTransactionRepository(db)
 	tokenManager := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTIssuer)
 	sessionStore := auth.NewSessionStore(redisClient)
 	authService := service.NewAuthService(userRepository, tokenManager, sessionStore, cfg.SessionTTL)
+	buyTransactionService := service.NewBuyTransactionService(buyTransactionRepository)
 
 	authHandler := handler.NewAuthHandler(authService, cfg.CookieName, cfg.CookieDomain, cfg.CookieSecure, cfg.SessionTTL)
+	buyTransactionHandler := handler.NewBuyTransactionHandler(buyTransactionService)
 	userHandler := handler.NewUserHandler(authService)
 	healthHandler := handler.NewHealthHandler(db, redisClient)
 	authMiddleware := middleware.NewAuthMiddleware(cfg.CookieName, tokenManager, sessionStore, userRepository)
@@ -99,6 +102,22 @@ func main() {
 
 				userHandler.Me(c, user.UserID)
 			})
+		}
+
+		buyTransactionRoutes := api.Group("/buy-transactions")
+		buyTransactionRoutes.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole(domain.RoleAdmin))
+		{
+			buyTransactionRoutes.GET("", buyTransactionHandler.List)
+			buyTransactionRoutes.POST("", func(c *gin.Context) {
+				user, ok := middleware.GetCurrentUser(c)
+				if !ok {
+					c.AbortWithStatus(401)
+					return
+				}
+
+				buyTransactionHandler.Create(c, user.UserID)
+			})
+			buyTransactionRoutes.PATCH("/:id", buyTransactionHandler.Complete)
 		}
 	}
 

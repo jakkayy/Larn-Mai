@@ -91,3 +91,53 @@ Request body:
 ### `GET /api/admin/me`
 
 ต้องเป็น `admin` เท่านั้น ใช้ทดสอบ role guard ชุดแรก
+
+## Buy Transactions
+
+endpoint ชุดนี้ใช้สำหรับ flow รับซื้อไม้ฝั่ง `admin`
+
+### `GET /api/buy-transactions`
+
+ใช้ดูรายการรับซื้อไม้ โดยรองรับ query:
+
+- `date=YYYY-MM-DD`
+- `customer_id`
+- `wood_id`
+
+ต้องเป็น `admin`
+
+### `POST /api/buy-transactions`
+
+สร้างรายการรับซื้อไม้รอบแรก โดย backend จะ snapshot `daily_price` ของประเภทไม้นั้นจาก `CURRENT_DATE`
+
+Request body:
+
+```json
+{
+  "customer_id": "11111111-1111-1111-1111-111111111111",
+  "wood_id": "22222222-2222-2222-2222-222222222222",
+  "before_weight": 2500.5
+}
+```
+
+หมายเหตุ:
+
+- ถ้ายังไม่มี `daily_price` ของไม้ชนิดนั้นในวันนี้ ระบบจะตอบกลับ error
+- รายการที่สร้างใหม่จะอยู่ในสถานะ `pending`
+
+### `PATCH /api/buy-transactions/:id`
+
+ใช้บันทึก `after_weight` เพื่อ complete รายการรอบที่สอง
+
+Request body:
+
+```json
+{
+  "after_weight": 1800.25
+}
+```
+
+หมายเหตุ:
+
+- `after_weight` ต้องน้อยกว่า `before_weight`
+- ใช้ได้เฉพาะรายการที่ยังเป็น `pending`
