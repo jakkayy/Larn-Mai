@@ -32,15 +32,18 @@ func main() {
 	userRepository := repository.NewPostgresUserRepository(db)
 	buyTransactionRepository := repository.NewPostgresBuyTransactionRepository(db)
 	catalogRepository := repository.NewPostgresCatalogRepository(db)
+	sellTransactionRepository := repository.NewPostgresSellTransactionRepository(db)
 	tokenManager := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTIssuer)
 	sessionStore := auth.NewSessionStore(redisClient)
 	authService := service.NewAuthService(userRepository, tokenManager, sessionStore, cfg.SessionTTL)
 	buyTransactionService := service.NewBuyTransactionService(buyTransactionRepository)
 	catalogService := service.NewCatalogService(catalogRepository)
+	sellTransactionService := service.NewSellTransactionService(sellTransactionRepository)
 
 	authHandler := handler.NewAuthHandler(authService, cfg.CookieName, cfg.CookieDomain, cfg.CookieSecure, cfg.SessionTTL)
 	buyTransactionHandler := handler.NewBuyTransactionHandler(buyTransactionService)
 	catalogHandler := handler.NewCatalogHandler(catalogService)
+	sellTransactionHandler := handler.NewSellTransactionHandler(sellTransactionService)
 	userHandler := handler.NewUserHandler(authService)
 	healthHandler := handler.NewHealthHandler(db, redisClient)
 	authMiddleware := middleware.NewAuthMiddleware(cfg.CookieName, tokenManager, sessionStore, userRepository)
@@ -142,6 +145,27 @@ func main() {
 				}
 
 				catalogHandler.CreateDailyPrice(c, user.UserID)
+			})
+		}
+
+		destinationRoutes := api.Group("/destinations")
+		destinationRoutes.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole(domain.RoleAdmin))
+		{
+			destinationRoutes.GET("", sellTransactionHandler.ListDestinations)
+		}
+
+		sellTransactionRoutes := api.Group("/sell-transactions")
+		sellTransactionRoutes.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole(domain.RoleAdmin))
+		{
+			sellTransactionRoutes.GET("", sellTransactionHandler.List)
+			sellTransactionRoutes.POST("", func(c *gin.Context) {
+				user, ok := middleware.GetCurrentUser(c)
+				if !ok {
+					c.AbortWithStatus(401)
+					return
+				}
+
+				sellTransactionHandler.Create(c, user.UserID)
 			})
 		}
 	}

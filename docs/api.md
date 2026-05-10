@@ -191,3 +191,45 @@ Request body:
 
 - 1 ชนิดไม้มีได้ 1 ราคา ต่อ 1 วัน
 - ถ้าสร้างซ้ำวันเดิม ระบบจะตอบ conflict
+
+## Destinations
+
+endpoint ชุดนี้ใช้ดึงปลายทางขายสำหรับฝั่ง `admin`
+
+### `GET /api/destinations`
+
+ใช้ดูรายการปลายทางขายทั้งหมด
+
+## Sell Transactions
+
+endpoint ชุดนี้ใช้สำหรับ flow ขายไม้ออกจากลานฝั่ง `admin`
+
+### `GET /api/sell-transactions`
+
+ใช้ดูรายการขายไม้ออก โดยรองรับ query:
+
+- `date=YYYY-MM-DD`
+- `wood_id`
+- `destination_id`
+
+### `POST /api/sell-transactions`
+
+ใช้สร้างรายการขายไม้ออก
+
+Request body:
+
+```json
+{
+  "wood_id": "22222222-2222-2222-2222-222222222222",
+  "destination_id": "33333333-3333-3333-3333-333333333333",
+  "before_weight": 1800.25,
+  "after_weight": 2500.5,
+  "total_sale_price": 4200,
+  "notes": "ขายรอบเช้า"
+}
+```
+
+หมายเหตุ:
+
+- `after_weight` ต้องมากกว่า `before_weight`
+- `net_weight` จะถูกคำนวณจากฐานข้อมูลอัตโนมัติ
