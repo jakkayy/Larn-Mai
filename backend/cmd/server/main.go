@@ -30,11 +30,14 @@ func main() {
 	defer redisClient.Close()
 
 	userRepository := repository.NewPostgresUserRepository(db)
+	customerRepository := repository.NewPostgresCustomerRepository(db)
 	tokenManager := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTIssuer)
 	sessionStore := auth.NewSessionStore(redisClient)
 	authService := service.NewAuthService(userRepository, tokenManager, sessionStore, cfg.SessionTTL)
+	customerService := service.NewCustomerService(customerRepository)
 
 	authHandler := handler.NewAuthHandler(authService, cfg.CookieName, cfg.CookieDomain, cfg.CookieSecure, cfg.SessionTTL)
+	customerHandler := handler.NewCustomerHandler(customerService)
 	userHandler := handler.NewUserHandler(authService)
 	healthHandler := handler.NewHealthHandler(db, redisClient)
 	authMiddleware := middleware.NewAuthMiddleware(cfg.CookieName, tokenManager, sessionStore, userRepository)
@@ -99,6 +102,15 @@ func main() {
 
 				userHandler.Me(c, user.UserID)
 			})
+		}
+
+		customerRoutes := api.Group("/customers")
+		customerRoutes.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole(domain.RoleAdmin))
+		{
+			customerRoutes.GET("", customerHandler.List)
+			customerRoutes.POST("", customerHandler.Create)
+			customerRoutes.GET("/:id", customerHandler.Get)
+			customerRoutes.PUT("/:id", customerHandler.Update)
 		}
 	}
 

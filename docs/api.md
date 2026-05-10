@@ -91,3 +91,51 @@ Request body:
 ### `GET /api/admin/me`
 
 ต้องเป็น `admin` เท่านั้น ใช้ทดสอบ role guard ชุดแรก
+
+## Customers
+
+endpoint ชุดนี้ใช้จัดการข้อมูลลูกค้าฝั่ง `admin`
+
+### `GET /api/customers`
+
+ใช้ดูรายการลูกค้าทั้งหมด และรองรับ query:
+
+- `q` ค้นจากชื่อ, ทะเบียนรถ, หรือเบอร์โทร
+
+### `POST /api/customers`
+
+ใช้สร้างลูกค้าใหม่
+
+Request body:
+
+```json
+{
+  "name": "สมชาย ใจดี",
+  "type_car": "รถบรรทุก",
+  "model_car": "Isuzu",
+  "color_car": "ขาว",
+  "license_plate": "กข1234",
+  "phone": "0812345678"
+}
+```
+
+### `GET /api/customers/:id`
+
+ใช้ดูข้อมูลลูกค้า 1 ราย
+
+### `PUT /api/customers/:id`
+
+ใช้แก้ไขข้อมูลลูกค้า
+
+Request body:
+
+```json
+{
+  "name": "สมชาย ใจดี",
+  "type_car": "รถบรรทุก",
+  "model_car": "Isuzu",
+  "color_car": "ขาว",
+  "license_plate": "กข1234",
+  "phone": "0812345678"
+}
+```
