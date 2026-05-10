@@ -68,11 +68,14 @@ lan-mai/
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `POSTGRES_PORT`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
 - `REDIS_PORT`
 - `MINIO_ROOT_USER`
 - `MINIO_ROOT_PASSWORD`
 - `MINIO_PORT`
 - `MINIO_CONSOLE_PORT`
+- `COMPANY_SIGNATURE_URL`
 
 ### 2. เปิด infra services
 
@@ -103,6 +106,15 @@ npm run dev
 ```bash
 cd backend
 go run ./cmd/server
+```
+
+### 5. เตรียมฐานข้อมูล
+
+หลังจากเปิด infra แล้ว สามารถสร้าง schema และ seed ข้อมูลเริ่มต้นได้ด้วย:
+
+```bash
+./scripts/migrate.sh
+./scripts/seed.sh
 ```
 
 ## Ports เริ่มต้น
@@ -142,12 +154,14 @@ go run ./cmd/server
 - สรุป requirement ใน `PROJECT_SPEC.md`
 - วางโครงสร้าง repo แยก `frontend / backend / infra`
 - เตรียม `docker-compose.yml` สำหรับ local infrastructure
+- มี PostgreSQL schema migration แรกแล้ว
+- มี seed เริ่มต้นสำหรับ admin, destinations, และ system settings แล้ว
 
 สิ่งที่ยังไม่ได้ทำ:
 
 - scaffold Next.js app แบบสมบูรณ์
 - ติดตั้ง package และ dependency จริง
-- ออกแบบ SQL migration
+- ทำ seed ข้อมูลประเภทไม้ตามข้อมูลจริงของหน้างาน
 - สร้าง REST API
 - เชื่อมต่อ frontend กับ backend
 
@@ -161,7 +175,7 @@ go run ./cmd/server
 ## ลำดับงานที่แนะนำต่อจากนี้
 
 1. ออกแบบ database schema และเขียน migration แรก
-2. seed ข้อมูลตั้งต้น เช่น admin, wood types, destinations
+2. เพิ่ม seed ข้อมูลประเภทไม้ตามข้อมูลจริงของหน้างาน
 3. วางโครง backend auth และ health check endpoint
 4. scaffold frontend หน้า login และ dashboard พื้นฐาน
 5. เชื่อม frontend-backend สำหรับ auth และข้อมูลหลัก
@@ -172,3 +186,4 @@ go run ./cmd/server
 - `user` สมัครใช้งานได้ปกติผ่านระบบ
 - ลายเซ็นที่ใช้ในบิลเป็นลายเซ็นของกิจการและใช้ซ้ำทุกบิล
 - offline write support ยังไม่อยู่ในเฟสแรก
+- มี migration แรกและ seed เริ่มต้นสำหรับ admin, destinations, และ system settings แล้ว

@@ -215,3 +215,26 @@ Rules:
 - destination 2 รายการ: โรงงานไม้ฟืน, โรงงานไม้ท่อน
 - wood types เบื้องต้นตามที่หน้างานใช้จริง
 - `system_settings.company_signature_url`
+
+## Local Workflow
+
+ไฟล์ที่เกี่ยวข้อง:
+
+- schema migration: [backend/migrations/0001_init_schema.sql](/home/naeiger/project-personal/web/lan-mai/backend/migrations/0001_init_schema.sql)
+- seed data: [backend/seeds/0001_initial_data.sql](/home/naeiger/project-personal/web/lan-mai/backend/seeds/0001_initial_data.sql)
+- migrate script: [scripts/migrate.sh](/home/naeiger/project-personal/web/lan-mai/scripts/migrate.sh)
+- seed script: [scripts/seed.sh](/home/naeiger/project-personal/web/lan-mai/scripts/seed.sh)
+
+ขั้นตอนใช้งานใน local:
+
+1. เปิด infra ก่อนด้วย `docker compose up -d`
+2. รัน migrations ด้วย `./scripts/migrate.sh`
+3. รัน seed data ด้วย `./scripts/seed.sh`
+
+ค่าที่ใช้ seed อ่านจาก `.env` หรือ fallback ไปที่ `.env.example`
+
+ค่า default สำคัญ:
+
+- `ADMIN_USERNAME=admin`
+- `ADMIN_PASSWORD=admin1234`
+- `COMPANY_SIGNATURE_URL=` ว่างได้ในช่วงเริ่มต้น

@@ -1,3 +1,24 @@
 #!/usr/bin/env bash
 
-# Run database migrations.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ -f "$ROOT_DIR/.env" ]; then
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env"
+else
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env.example"
+fi
+
+for file in "$ROOT_DIR"/backend/migrations/*.sql; do
+  [ -f "$file" ] || continue
+  name="$(basename "$file")"
+  echo "Applying migration: $name"
+  docker compose exec -T postgres psql \
+    -U "${POSTGRES_USER}" \
+    -d "${POSTGRES_DB}" \
+    -v ON_ERROR_STOP=1 \
+    -f - < "$file"
+done
