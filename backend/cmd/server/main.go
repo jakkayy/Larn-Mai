@@ -76,6 +76,15 @@ func main() {
 
 				userHandler.Me(c, user.UserID)
 			})
+			userRoutes.PUT("/me", func(c *gin.Context) {
+				user, ok := middleware.GetCurrentUser(c)
+				if !ok {
+					c.AbortWithStatus(401)
+					return
+				}
+
+				userHandler.UpdateMe(c, user.UserID)
+			})
 		}
 
 		adminRoutes := api.Group("/admin")

@@ -13,6 +13,7 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrRegisterConflict   = errors.New("username or customer data already exists")
+	ErrProfileConflict    = errors.New("profile data conflicts with an existing record")
 )
 
 type AuthService struct {
@@ -83,6 +84,19 @@ func (s *AuthService) Logout(ctx context.Context, userID string, sessionID strin
 
 func (s *AuthService) CurrentUser(ctx context.Context, userID string) (*domain.User, error) {
 	return s.users.FindByID(ctx, userID)
+}
+
+func (s *AuthService) UpdateProfile(ctx context.Context, userID string, input domain.UpdateProfileInput) (*domain.User, error) {
+	user, err := s.users.UpdateProfile(ctx, userID, input)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserConflict) {
+			return nil, ErrProfileConflict
+		}
+
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *AuthService) issueSessionToken(ctx context.Context, user *domain.User) (string, error) {

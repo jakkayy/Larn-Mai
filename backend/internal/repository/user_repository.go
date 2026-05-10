@@ -18,6 +18,7 @@ type UserRepository interface {
 	CreateUserWithCustomer(ctx context.Context, input domain.RegisterInput, passwordHash string) (*domain.User, error)
 	FindByUsername(ctx context.Context, username string) (*domain.User, error)
 	FindByID(ctx context.Context, userID string) (*domain.User, error)
+	UpdateProfile(ctx context.Context, userID string, input domain.UpdateProfileInput) (*domain.User, error)
 }
 
 type PostgresUserRepository struct {
@@ -117,6 +118,32 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, userID string) (*
 		LEFT JOIN customers c ON c.customer_id = u.customer_id
 		WHERE u.user_id = $1
 	`, userID)
+}
+
+func (r *PostgresUserRepository) UpdateProfile(ctx context.Context, userID string, input domain.UpdateProfileInput) (*domain.User, error) {
+	commandTag, err := r.db.Exec(ctx, `
+		UPDATE customers c
+		SET
+			name = $2,
+			type_car = $3,
+			model_car = $4,
+			color_car = $5,
+			license_plate = $6,
+			phone = $7,
+			updated_at = NOW()
+		FROM users u
+		WHERE u.user_id = $1
+			AND u.customer_id = c.customer_id
+			AND u.role = 'user'
+	`, userID, input.Name, input.TypeCar, input.ModelCar, input.ColorCar, input.LicensePlate, input.Phone)
+	if err != nil {
+		return nil, mapDatabaseError(err)
+	}
+	if commandTag.RowsAffected() == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	return r.FindByID(ctx, userID)
 }
 
 func (r *PostgresUserRepository) findOne(ctx context.Context, query string, arg string) (*domain.User, error) {
