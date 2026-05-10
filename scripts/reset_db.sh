@@ -12,18 +12,11 @@ else
   source "$ROOT_DIR/.env.example"
 fi
 
-SEED_FILE="$ROOT_DIR/backend/seeds/0001_initial_data.sql"
-
-if [ ! -f "$SEED_FILE" ]; then
-  echo "Seed file not found: $SEED_FILE" >&2
-  exit 1
-fi
-
 docker compose exec -T postgres psql \
   -U "${POSTGRES_USER}" \
   -d "${POSTGRES_DB}" \
   -v ON_ERROR_STOP=1 \
-  -v admin_username="${ADMIN_USERNAME}" \
-  -v admin_password="${ADMIN_PASSWORD}" \
-  -v company_signature_url="${COMPANY_SIGNATURE_URL}" \
-  -f - < "$SEED_FILE"
+  -c "DROP SCHEMA public CASCADE;" \
+  -c "CREATE SCHEMA public;" \
+  -c "GRANT ALL ON SCHEMA public TO ${POSTGRES_USER};" \
+  -c "GRANT ALL ON SCHEMA public TO public;"
