@@ -64,6 +64,28 @@ Request body:
 
 ต้อง login ก่อน ใช้ดึงข้อมูล user ปัจจุบันพร้อม customer profile ถ้ามี
 
+### `PUT /api/users/me`
+
+ต้อง login ก่อน ใช้แก้ไขข้อมูล profile ของ user ปัจจุบัน
+
+Request body:
+
+```json
+{
+  "name": "สมชาย ใจดี",
+  "type_car": "รถบรรทุก",
+  "model_car": "Isuzu",
+  "color_car": "ขาว",
+  "license_plate": "กข1234",
+  "phone": "0812345678"
+}
+```
+
+หมายเหตุ:
+
+- endpoint นี้แก้เฉพาะข้อมูลใน `customer`
+- ยังไม่ครอบคลุมการเปลี่ยน `username` หรือ `password`
+
 ## Admin
 
 ### `GET /api/admin/me`
