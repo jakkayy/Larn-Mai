@@ -31,13 +31,16 @@ func main() {
 
 	userRepository := repository.NewPostgresUserRepository(db)
 	buyTransactionRepository := repository.NewPostgresBuyTransactionRepository(db)
+	catalogRepository := repository.NewPostgresCatalogRepository(db)
 	tokenManager := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTIssuer)
 	sessionStore := auth.NewSessionStore(redisClient)
 	authService := service.NewAuthService(userRepository, tokenManager, sessionStore, cfg.SessionTTL)
 	buyTransactionService := service.NewBuyTransactionService(buyTransactionRepository)
+	catalogService := service.NewCatalogService(catalogRepository)
 
 	authHandler := handler.NewAuthHandler(authService, cfg.CookieName, cfg.CookieDomain, cfg.CookieSecure, cfg.SessionTTL)
 	buyTransactionHandler := handler.NewBuyTransactionHandler(buyTransactionService)
+	catalogHandler := handler.NewCatalogHandler(catalogService)
 	userHandler := handler.NewUserHandler(authService)
 	healthHandler := handler.NewHealthHandler(db, redisClient)
 	authMiddleware := middleware.NewAuthMiddleware(cfg.CookieName, tokenManager, sessionStore, userRepository)
@@ -118,6 +121,28 @@ func main() {
 				buyTransactionHandler.Create(c, user.UserID)
 			})
 			buyTransactionRoutes.PATCH("/:id", buyTransactionHandler.Complete)
+		}
+
+		woodTypeRoutes := api.Group("/wood-types")
+		woodTypeRoutes.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole(domain.RoleAdmin))
+		{
+			woodTypeRoutes.GET("", catalogHandler.ListWoodTypes)
+			woodTypeRoutes.POST("", catalogHandler.CreateWoodType)
+		}
+
+		dailyPriceRoutes := api.Group("/daily-prices")
+		dailyPriceRoutes.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole(domain.RoleAdmin))
+		{
+			dailyPriceRoutes.GET("", catalogHandler.ListDailyPrices)
+			dailyPriceRoutes.POST("", func(c *gin.Context) {
+				user, ok := middleware.GetCurrentUser(c)
+				if !ok {
+					c.AbortWithStatus(401)
+					return
+				}
+
+				catalogHandler.CreateDailyPrice(c, user.UserID)
+			})
 		}
 	}
 

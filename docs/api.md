@@ -141,3 +141,53 @@ Request body:
 
 - `after_weight` ต้องน้อยกว่า `before_weight`
 - ใช้ได้เฉพาะรายการที่ยังเป็น `pending`
+
+## Wood Types
+
+endpoint ชุดนี้ใช้จัดการ master data ของประเภทไม้ฝั่ง `admin`
+
+### `GET /api/wood-types`
+
+ใช้ดูรายการประเภทไม้ทั้งหมด
+
+### `POST /api/wood-types`
+
+ใช้เพิ่มประเภทไม้ใหม่
+
+Request body:
+
+```json
+{
+  "name": "ไม้ยาง"
+}
+```
+
+## Daily Prices
+
+endpoint ชุดนี้ใช้กำหนดราคารับซื้อไม้รายวันฝั่ง `admin`
+
+### `GET /api/daily-prices`
+
+ใช้ดูรายการราคาประจำวัน โดยรองรับ query:
+
+- `date=YYYY-MM-DD`
+- `wood_id`
+
+### `POST /api/daily-prices`
+
+ใช้สร้างราคาประจำวันของไม้แต่ละชนิด
+
+Request body:
+
+```json
+{
+  "wood_id": "22222222-2222-2222-2222-222222222222",
+  "price_per_kg": 3.5,
+  "effective_date": "2026-05-10"
+}
+```
+
+หมายเหตุ:
+
+- 1 ชนิดไม้มีได้ 1 ราคา ต่อ 1 วัน
+- ถ้าสร้างซ้ำวันเดิม ระบบจะตอบ conflict
