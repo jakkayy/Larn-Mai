@@ -91,3 +91,145 @@ Request body:
 ### `GET /api/admin/me`
 
 ต้องเป็น `admin` เท่านั้น ใช้ทดสอบ role guard ชุดแรก
+
+## Buy Transactions
+
+endpoint ชุดนี้ใช้สำหรับ flow รับซื้อไม้ฝั่ง `admin`
+
+### `GET /api/buy-transactions`
+
+ใช้ดูรายการรับซื้อไม้ โดยรองรับ query:
+
+- `date=YYYY-MM-DD`
+- `customer_id`
+- `wood_id`
+
+ต้องเป็น `admin`
+
+### `POST /api/buy-transactions`
+
+สร้างรายการรับซื้อไม้รอบแรก โดย backend จะ snapshot `daily_price` ของประเภทไม้นั้นจาก `CURRENT_DATE`
+
+Request body:
+
+```json
+{
+  "customer_id": "11111111-1111-1111-1111-111111111111",
+  "wood_id": "22222222-2222-2222-2222-222222222222",
+  "before_weight": 2500.5
+}
+```
+
+หมายเหตุ:
+
+- ถ้ายังไม่มี `daily_price` ของไม้ชนิดนั้นในวันนี้ ระบบจะตอบกลับ error
+- รายการที่สร้างใหม่จะอยู่ในสถานะ `pending`
+
+### `PATCH /api/buy-transactions/:id`
+
+ใช้บันทึก `after_weight` เพื่อ complete รายการรอบที่สอง
+
+Request body:
+
+```json
+{
+  "after_weight": 1800.25
+}
+```
+
+หมายเหตุ:
+
+- `after_weight` ต้องน้อยกว่า `before_weight`
+- ใช้ได้เฉพาะรายการที่ยังเป็น `pending`
+
+## Wood Types
+
+endpoint ชุดนี้ใช้จัดการ master data ของประเภทไม้ฝั่ง `admin`
+
+### `GET /api/wood-types`
+
+ใช้ดูรายการประเภทไม้ทั้งหมด
+
+### `POST /api/wood-types`
+
+ใช้เพิ่มประเภทไม้ใหม่
+
+Request body:
+
+```json
+{
+  "name": "ไม้ยาง"
+}
+```
+
+## Daily Prices
+
+endpoint ชุดนี้ใช้กำหนดราคารับซื้อไม้รายวันฝั่ง `admin`
+
+### `GET /api/daily-prices`
+
+ใช้ดูรายการราคาประจำวัน โดยรองรับ query:
+
+- `date=YYYY-MM-DD`
+- `wood_id`
+
+### `POST /api/daily-prices`
+
+ใช้สร้างราคาประจำวันของไม้แต่ละชนิด
+
+Request body:
+
+```json
+{
+  "wood_id": "22222222-2222-2222-2222-222222222222",
+  "price_per_kg": 3.5,
+  "effective_date": "2026-05-10"
+}
+```
+
+หมายเหตุ:
+
+- 1 ชนิดไม้มีได้ 1 ราคา ต่อ 1 วัน
+- ถ้าสร้างซ้ำวันเดิม ระบบจะตอบ conflict
+
+## Destinations
+
+endpoint ชุดนี้ใช้ดึงปลายทางขายสำหรับฝั่ง `admin`
+
+### `GET /api/destinations`
+
+ใช้ดูรายการปลายทางขายทั้งหมด
+
+## Sell Transactions
+
+endpoint ชุดนี้ใช้สำหรับ flow ขายไม้ออกจากลานฝั่ง `admin`
+
+### `GET /api/sell-transactions`
+
+ใช้ดูรายการขายไม้ออก โดยรองรับ query:
+
+- `date=YYYY-MM-DD`
+- `wood_id`
+- `destination_id`
+
+### `POST /api/sell-transactions`
+
+ใช้สร้างรายการขายไม้ออก
+
+Request body:
+
+```json
+{
+  "wood_id": "22222222-2222-2222-2222-222222222222",
+  "destination_id": "33333333-3333-3333-3333-333333333333",
+  "before_weight": 1800.25,
+  "after_weight": 2500.5,
+  "total_sale_price": 4200,
+  "notes": "ขายรอบเช้า"
+}
+```
+
+หมายเหตุ:
+
+- `after_weight` ต้องมากกว่า `before_weight`
+- `net_weight` จะถูกคำนวณจากฐานข้อมูลอัตโนมัติ
