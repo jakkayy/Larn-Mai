@@ -5,9 +5,9 @@ INSERT INTO users (
     customer_id
 )
 VALUES (
-    COALESCE(NULLIF(current_setting('app.admin_username', true), ''), 'admin'),
+    COALESCE(NULLIF(:'admin_username', ''), 'admin'),
     crypt(
-        COALESCE(NULLIF(current_setting('app.admin_password', true), ''), 'admin1234'),
+        COALESCE(NULLIF(:'admin_password', ''), 'admin1234'),
         gen_salt('bf', 10)
     ),
     'admin',
@@ -24,7 +24,7 @@ ON CONFLICT (code) DO NOTHING;
 INSERT INTO system_settings (setting_key, setting_value, updated_by)
 SELECT
     'company_signature_url',
-    COALESCE(current_setting('app.company_signature_url', true), ''),
+    COALESCE(:'company_signature_url', ''),
     u.user_id
 FROM users u
 WHERE u.role = 'admin'

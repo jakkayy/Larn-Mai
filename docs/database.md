@@ -224,12 +224,19 @@ Rules:
 - seed data: [backend/seeds/0001_initial_data.sql](/home/naeiger/project-personal/web/lan-mai/backend/seeds/0001_initial_data.sql)
 - migrate script: [scripts/migrate.sh](/home/naeiger/project-personal/web/lan-mai/scripts/migrate.sh)
 - seed script: [scripts/seed.sh](/home/naeiger/project-personal/web/lan-mai/scripts/seed.sh)
+- reset script: [scripts/reset_db.sh](/home/naeiger/project-personal/web/lan-mai/scripts/reset_db.sh)
 
 ขั้นตอนใช้งานใน local:
 
 1. เปิด infra ก่อนด้วย `docker compose up -d`
 2. รัน migrations ด้วย `./scripts/migrate.sh`
 3. รัน seed data ด้วย `./scripts/seed.sh`
+
+ถ้าต้องการล้างฐานข้อมูลระหว่างพัฒนา:
+
+1. รัน `./scripts/reset_db.sh`
+2. รัน `./scripts/migrate.sh`
+3. รัน `./scripts/seed.sh`
 
 ค่าที่ใช้ seed อ่านจาก `.env` หรือ fallback ไปที่ `.env.example`
 
